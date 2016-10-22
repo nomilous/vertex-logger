@@ -9,6 +9,7 @@ describe(filename, () => {
   it('defaults name and level', done => {
 
     let logger = new VertexLogger();
+    expect(logger._root).to.be('parent');
     expect(logger._parent).to.be('parent');
     expect(logger._name).to.be('name');
     expect(logger._level).to.be(VertexLogger.LEVEL_INFO);
@@ -36,7 +37,7 @@ describe(filename, () => {
 
   });
 
-  it('can create a new logger from an existing one which inherits the level and context', done => {
+  it('can create a new logger from an existing one which inherits the level and parent', done => {
 
     let log1 = new VertexLogger({parent: 'a', name: 'one', level: VertexLogger.LEVEL_FATAL});
     let log2 = log1.createLogger({name: 'two'});
@@ -44,12 +45,55 @@ describe(filename, () => {
     expect(log1._parent).to.be('a');
     expect(log1._name).to.be('one');
     expect(log1._level).to.be(VertexLogger.LEVEL_FATAL);
+    expect(log2._root).to.be('a');
     expect(log2._parent).to.be('one');
     expect(log2._name).to.be('two');
     expect(log2._level).to.be(VertexLogger.LEVEL_FATAL);
     done();
 
   });
+
+  it('keeps absolute root', done => {
+
+    let log = new VertexLogger({parent: 'ROOT', name: 'name1'});
+    log = log.createLogger({name: 'name2'});
+    log = log.createLogger({name: 'name3'});
+    log.info('message');
+    done();
+
+  });
+
+  it('can get the level', done => {
+
+    let log = new VertexLogger();
+    expect(log.level).to.equal(VertexLogger.LEVEL_INFO);
+    done();
+
+  });
+
+  it('can set the level', done => {
+
+    let log = new VertexLogger();
+    expect(log.level).to.equal(VertexLogger.LEVEL_INFO);
+    log.level = VertexLogger.LEVEL_FATAL;
+    expect(log.level).to.equal(VertexLogger.LEVEL_FATAL);
+    expect(log._level).to.equal(VertexLogger.LEVEL_FATAL);
+    done();
+
+  });
+
+  it('throws on invalid level set', done => {
+
+    let log = new VertexLogger();
+    try {
+      log.level = 99;
+    } catch (e) {
+      expect(e.message).to.equal('Not such a log level');
+      done();
+    }
+
+  });
+
 
   it('logs to fatal', done => {
 
