@@ -13,13 +13,14 @@ describe(filename, () => {
     expect(logger._parent).to.be('parent');
     expect(logger._name).to.be('name');
     expect(logger._level).to.be(VertexLogger.LEVEL_INFO);
+    expect(logger.level).to.be('info');
     done();
 
   });
 
   it('uses configured name and level', done => {
 
-    let logger = new VertexLogger({parent: 'a', name: 'x', level: VertexLogger.LEVEL_DEBUG});
+    let logger = new VertexLogger({parent: 'a', name: 'x', level: 'debug'});
     expect(logger._parent).to.be('a');
     expect(logger._name).to.be('x');
     expect(logger._level).to.be(VertexLogger.LEVEL_DEBUG);
@@ -30,16 +31,16 @@ describe(filename, () => {
   it('reassigns to level info on bad level', done => {
 
     let log1 = new VertexLogger({level: 0});
-    let log2 = new VertexLogger({level: 6});
+    // let log2 = new VertexLogger({level: 6});
     expect(log1._level).to.be(VertexLogger.LEVEL_INFO);
-    expect(log2._level).to.be(VertexLogger.LEVEL_INFO);
+    // expect(log2._level).to.be(VertexLogger.LEVEL_INFO);
     done();
 
   });
 
   it('can create a new logger from an existing one which inherits the level and parent', done => {
 
-    let log1 = new VertexLogger({parent: 'a', name: 'one', level: VertexLogger.LEVEL_FATAL});
+    let log1 = new VertexLogger({parent: 'a', name: 'one', level: 'fatal'});
     let log2 = log1.createLogger({name: 'two'});
 
     expect(log1._parent).to.be('a');
@@ -49,6 +50,7 @@ describe(filename, () => {
     expect(log2._parent).to.be('one');
     expect(log2._name).to.be('two');
     expect(log2._level).to.be(VertexLogger.LEVEL_FATAL);
+    expect(log2.level).to.be('fatal');
     done();
 
   });
@@ -66,7 +68,7 @@ describe(filename, () => {
   it('can get the level', done => {
 
     let log = new VertexLogger();
-    expect(log.level).to.equal(VertexLogger.LEVEL_INFO);
+    expect(log.level).to.equal('info');
     done();
 
   });
@@ -74,9 +76,10 @@ describe(filename, () => {
   it('can set the level', done => {
 
     let log = new VertexLogger();
-    expect(log.level).to.equal(VertexLogger.LEVEL_INFO);
-    log.level = VertexLogger.LEVEL_FATAL;
-    expect(log.level).to.equal(VertexLogger.LEVEL_FATAL);
+    expect(log.level).to.equal('info');
+    expect(log._level).to.equal(VertexLogger.LEVEL_INFO);
+    log.level = 'fatal';
+    expect(log.level).to.equal('fatal');
     expect(log._level).to.equal(VertexLogger.LEVEL_FATAL);
     done();
 
@@ -86,18 +89,34 @@ describe(filename, () => {
 
     let log = new VertexLogger();
     try {
-      log.level = 99;
+      log.level = 'xxx';
     } catch (e) {
-      expect(e.message).to.equal('Not such a log level');
+      expect(e.message).to.equal('Not one of levels off,fatal,error,warn,info,debug');
       done();
     }
+
+  });
+
+  it('does not log to off', done => {
+
+    let log = new VertexLogger({level: 'off'});
+    log.fatal('just %d %s', 1, 'message');
+    log.fatal('just %d %s', 2, 'message');
+    log.fatal('just %d %s', 3, 'message');
+    log.fatal('just %d %s', 4, 'message');
+    log.fatal('just %d %s', 5, 'message');
+    log.fatal('just %d %s', 6, 'message');
+    log.fatal('just %d %s', 7, 'message');
+    log.fatal('just %d %s', 8, 'message');
+    log.fatal('just %d %s', 9, 'message');
+    done();
 
   });
 
 
   it('logs to fatal', done => {
 
-    let log = new VertexLogger({level: VertexLogger.LEVEL_FATAL});
+    let log = new VertexLogger({level: 'fatal'});
     log.fatal('just %d %s', 1, 'message');
     done();
 
@@ -105,7 +124,7 @@ describe(filename, () => {
 
   it('logs to error', done => {
 
-    let log = new VertexLogger({level: VertexLogger.LEVEL_ERROR});
+    let log = new VertexLogger({level: 'error'});
     log.error('just %d %s', 1, 'message');
     done();
 
@@ -113,7 +132,7 @@ describe(filename, () => {
 
   it('logs to warn', done => {
 
-    let log = new VertexLogger({level: VertexLogger.LEVEL_WARN});
+    let log = new VertexLogger({level: 'warn'});
     log.warn('just %d %s', 1, 'message');
     done();
 
@@ -121,7 +140,7 @@ describe(filename, () => {
 
   it('logs to info', done => {
 
-    let log = new VertexLogger({level: VertexLogger.LEVEL_INFO});
+    let log = new VertexLogger({level: 'info'});
     log.info('just %d %s', 1, 'message');
     done();
 
@@ -129,7 +148,7 @@ describe(filename, () => {
 
   it('logs to debug', done => {
 
-    let log = new VertexLogger({level: VertexLogger.LEVEL_DEBUG});
+    let log = new VertexLogger({level: 'debug'});
     log.debug('just %d %s', 1, 'message');
     done();
 
@@ -137,7 +156,7 @@ describe(filename, () => {
 
   it('does not log above specified level', done => {
 
-    let log = new VertexLogger({level: VertexLogger.LEVEL_INFO});
+    let log = new VertexLogger({level: 'info'});
     log._write = () => {
       throw new Error('should not log');
     };
@@ -148,7 +167,7 @@ describe(filename, () => {
 
   it('includes the error stack if last arg is instanceof error', done => {
 
-    let log = new VertexLogger({level: VertexLogger.LEVEL_INFO});
+    let log = new VertexLogger({level: 'info'});
     log.info('error %s', new Error('Problem no problem'));
     done();
 
