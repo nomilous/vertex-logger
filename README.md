@@ -14,45 +14,94 @@ A logger.
 const VertexLogger = require('vertex-logger');
 
 const logger = new VertexLogger({
-  parent: 'rootName',
-  name: 'name1',
-  level: 'info' // off fatal error warn info debug
+  root: 'root',
+  name: 'name',
+  level: 'info' // off fatal error warn info debug trace
 });
 
 logger.level = 'debug'; // reset level
 
 logger.info('interpo%s st%s', 'lated', 'ring');
 // if stdout is TTY:
-//   [ info] (rootName/name1) interpolated string (201ms)
+//   [ info] (root/name) interpolated string (201ms)
 // if not:
-//   2016-10-21 14:11:31.471 [ info] (rootName/name) interpolated string (201ms)
+//   2016-10-21 14:11:31.471 [ info] (root/name) interpolated string (201ms)
 
 logger.fatal(); // to stderr
 logger.error(); // to stderr
 logger.warn();  // to stdout
 logger.info();  // to stdout
 logger.debug(); // to stdout
+logger.trace(); // to stdout
 
 logger.error("couldn't", new Error('Why'));
-// [error] (rootName/name1) couldn't (1231ms)
+// [error] (root/name) couldn't (1231ms)
 // Error: Why
 //     at repl:1:25
 //     at sigintHandlersWrap (vm.js:22:35)
 //     at sigintHandlersWrap (vm.js:96:12)
 //     ...
-
-
-// create new logger from existing logger
-logger2 = logger.createLogger({name: 'name2'});
-
-logger2.info('message');
-// [ info] (rootName/name2) message (0ms)
-//
-// Note:
-//   name2 is actually at rootName/name1/name2 but the logger does not currently
-//   show the full path.
-
 ```
 
+#### A tree of loggers...
 
+...can be built for context.
+
+```javascript
+let appLogger = new VertexLogger({
+  root: 'app-name',
+  name: 'application'
+});
+
+let serviceLogger = appLogger.createLogger({
+  name: 'service-name'
+});
+
+let componentLogger = serviceLogger.createLogger({
+  name: 'component-name'
+});
+
+//
+// Log messages only display 'root/name' and not 'root/parent/parent/name'
+//
+// eg.
+
+componentLogger.info('message');
+// [ info] (app-name/component-name) message (0ms)
+```
+
+#### Loglevel functors...
+
+...can be passed as loglevel to target specific components.
+
+```javascript
+let logger = new VertexLogger({
+  root: 'app-name',
+  name: 'application',
+  
+  level: (info) => {
+    if (info.name == 'specific-component') return 'trace';
+    // defaults to 'info'
+  }
+});
+
+// The level functor is inherited into the tree of loggers
+// - it overrides log levels passed as string on createLogger() child
+// - if does not override loglevels passed as functions on createLogger() child
+
+
+// Level by functor can also be directly assigned
+
+logger.level = (info) => {
+  if (info.ancestors.indexOf('service-name') >= 0) return 'off';
+  if (info.ancestors.pop() == 'specific-parent') return 'off';
+  return 'trace';
+}
+```
+
+#### Todo
+
+```javascript
+parentLogger.levelAll == 'off' || fn; // applied to all children
+```
 

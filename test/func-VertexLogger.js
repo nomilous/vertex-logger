@@ -9,8 +9,7 @@ describe(filename, () => {
   it('defaults name and level', done => {
 
     let logger = new VertexLogger();
-    expect(logger._root).to.be('parent');
-    expect(logger._parent).to.be('parent');
+    expect(logger._root).to.be('root');
     expect(logger._name).to.be('name');
     expect(logger._level).to.be(VertexLogger.LEVEL_INFO);
     expect(logger.level).to.be('info');
@@ -20,8 +19,8 @@ describe(filename, () => {
 
   it('uses configured name and level', done => {
 
-    let logger = new VertexLogger({parent: 'a', name: 'x', level: 'debug'});
-    expect(logger._parent).to.be('a');
+    let logger = new VertexLogger({root: 'a', name: 'x', level: 'debug'});
+    expect(logger._root).to.be('a');
     expect(logger._name).to.be('x');
     expect(logger._level).to.be(VertexLogger.LEVEL_DEBUG);
     done();
@@ -70,22 +69,117 @@ describe(filename, () => {
 
   });
 
-  it('can create a new logger from an existing one which inherits the level and parent', done => {
+  it('can create a new logger from existing, inherits level and ancestors', done => {
 
-    let log1 = new VertexLogger({parent: 'a', name: 'one', level: 'fatal'});
+    let log1 = new VertexLogger({root: 'a', name: 'one', level: 'fatal'});
     let log2 = log1.createLogger({name: 'two'});
 
-    expect(log1._parent).to.be('a');
+    expect(log1._root).to.be('a');
+    expect(log1._ancestors).to.eql(['a']);
     expect(log1._name).to.be('one');
     expect(log1._level).to.be(VertexLogger.LEVEL_FATAL);
+
     expect(log2._root).to.be('a');
-    expect(log2._parent).to.be('one');
+    expect(log2._ancestors).to.eql(['a', 'one']);
     expect(log2._name).to.be('two');
     expect(log2._level).to.be(VertexLogger.LEVEL_FATAL);
     expect(log2.level).to.be('fatal');
     done();
 
   });
+
+
+  it('can set the level by function', done => {
+
+    let log = new VertexLogger({name: 'test', level: (info) => {
+      if (info.name == 'test') return 'fatal';
+      return 'info';
+    }});
+
+    expect(log._level).to.be(VertexLogger.LEVEL_FATAL);
+    done();
+
+  });
+
+
+  it('provices ancestry in level function', done => {
+
+    let log = new VertexLogger({root: 'ROOT', name: 'grandparent'});
+    log = log.createLogger({name: 'parent'});
+    log.createLogger({name: 'me', level: (info) => {
+
+      expect(info.ancestors).to.eql(['ROOT', 'grandparent', 'parent']);
+      done();
+
+    }});
+
+  });
+
+
+  it('can reassign the level by function', done => {
+
+    let log = new VertexLogger({name: 'test'});
+    expect(log._level).to.be(VertexLogger.LEVEL_INFO);
+
+    log.level = () => {return 'fatal'};
+
+    expect(log.level).to.equal('fatal');
+
+    done();
+
+  });
+
+
+  it('inherits parent level function', done => {
+
+    let log = new VertexLogger({name: 'one', level: () => {return 'fatal'}});
+
+    let log2 = log.createLogger({name: 'two'});
+    expect(log2.level).to.equal('fatal');
+    done();
+
+  });
+
+
+  it('inherits parent level function after parent reassignment (?)', done => {
+
+    let log = new VertexLogger({name: 'one', level: () => {return 'fatal'}});
+    log.level = 'info';
+    expect(log.level).to.equal('info');
+
+    let log2 = log.createLogger({name: 'two'});
+    expect(log2.level).to.equal('fatal');
+    done();
+
+  });
+
+
+  it('inherited level function overrides string', done => {
+
+    let log = new VertexLogger({name: 'one', level: () => {return 'fatal'}});
+    log.level = 'info';
+    expect(log.level).to.equal('info');
+
+    let log2 = log.createLogger({name: 'two', level: 'info'});
+    expect(log2.level).to.equal('fatal');
+    done();
+
+  });
+
+
+  it('assigned level function overrides inherited', done => {
+
+    let log = new VertexLogger({name: 'one', level: () => {return 'fatal'}});
+    log.level = 'info';
+    expect(log.level).to.equal('info');
+
+    let log2 = log.createLogger({name: 'two', level: () => {return 'off'}});
+    expect(log2.level).to.equal('off');
+    done();
+
+
+  });
+
 
   it('keeps absolute root', done => {
 
