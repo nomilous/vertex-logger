@@ -28,6 +28,38 @@ describe(filename, () => {
 
   });
 
+  it('can get the level', done => {
+
+    let log = new VertexLogger();
+    expect(log.level).to.equal('info');
+    done();
+
+  });
+
+  it('can set the level', done => {
+
+    let log = new VertexLogger();
+    expect(log.level).to.equal('info');
+    expect(log._level).to.equal(VertexLogger.LEVEL_INFO);
+    log.level = 'fatal';
+    expect(log.level).to.equal('fatal');
+    expect(log._level).to.equal(VertexLogger.LEVEL_FATAL);
+    done();
+
+  });
+
+  it('throws on invalid level set', done => {
+
+    let log = new VertexLogger();
+    try {
+      log.level = 'xxx';
+    } catch (e) {
+      expect(e.message).to.equal('Not one of levels off,fatal,error,warn,info,debug,trace');
+      done();
+    }
+
+  });
+
   it('reassigns to level info on bad level', done => {
 
     let log1 = new VertexLogger({level: 0});
@@ -62,38 +94,6 @@ describe(filename, () => {
     log = log.createLogger({name: 'name3'});
     log.info('message');
     done();
-
-  });
-
-  it('can get the level', done => {
-
-    let log = new VertexLogger();
-    expect(log.level).to.equal('info');
-    done();
-
-  });
-
-  it('can set the level', done => {
-
-    let log = new VertexLogger();
-    expect(log.level).to.equal('info');
-    expect(log._level).to.equal(VertexLogger.LEVEL_INFO);
-    log.level = 'fatal';
-    expect(log.level).to.equal('fatal');
-    expect(log._level).to.equal(VertexLogger.LEVEL_FATAL);
-    done();
-
-  });
-
-  it('throws on invalid level set', done => {
-
-    let log = new VertexLogger();
-    try {
-      log.level = 'xxx';
-    } catch (e) {
-      expect(e.message).to.equal('Not one of levels off,fatal,error,warn,info,debug');
-      done();
-    }
 
   });
 
@@ -150,6 +150,14 @@ describe(filename, () => {
 
     let log = new VertexLogger({level: 'debug'});
     log.debug('just %d %s', 1, 'message');
+    done();
+
+  });
+
+  it('logs to trace', done => {
+
+    let log = new VertexLogger({level: 'trace'});
+    log.trace('just %d %s', 1, 'message');
     done();
 
   });
