@@ -8,7 +8,7 @@
 
 A logger.
 
-`nam install vertex-logger —save`
+`npm install vertex-logger --save`
 
 ```javascript
 const VertexLogger = require('vertex-logger');
