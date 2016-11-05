@@ -1,0 +1,44 @@
+#!/usr/bin/env node
+
+const REPL = require('repl');
+const VertexLogger = require('../');
+
+const root = new VertexLogger({root: 'system', name: 'main'});
+const service = root.createLogger({name: 'service'});
+const component1 = service.createLogger({name: 'component1'});
+const component2 = service.createLogger({name: 'component2'});
+
+setInterval(() => {
+  root.info('message from root');
+}, (Math.random() * 2000) + 1000);
+
+setInterval(() => {
+  service.info('message from service');
+}, (Math.random() * 2000) + 1000);
+
+setInterval(() => {
+  component1.info('message from component1');
+}, (Math.random() * 2000) + 1000);
+
+setInterval(() => {
+  component2.error('error', new Error('xxx'));
+}, (Math.random() * 2000) + 1000);
+
+const repl = REPL.start({
+  input: process.stdin,
+  output: process.stdout,
+  ignoreUndefined: true
+});
+
+// register repl with (any) logger for continuous prompt
+
+component1.repl = repl;
+
+
+
+
+// unregister repl
+
+// setTimeout(() => {
+//   component2.repl = undefined;
+// }, 5000);

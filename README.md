@@ -1,5 +1,3 @@
-**using node ^6.0.0**
-
 [![npm](https://img.shields.io/npm/v/vertex-logger.svg)](https://www.npmjs.com/package/vertex-logger)
 [![Build Status](https://travis-ci.org/nomilous/vertex-logger.svg?branch=master)](https://travis-ci.org/nomilous/vertex-logger)
 [![Coverage Status](https://coveralls.io/repos/nomilous/vertex-logger/badge.svg?branch=master&service=github)](https://coveralls.io/github/nomilous/vertex-logger?branch=master)
@@ -70,6 +68,24 @@ componentLogger.info('message');
 // [ info] (app-name/component-name) message (0ms)
 ```
 
+#### A repl
+
+…can be registered via any logger in the tree
+
+```javascript
+let logger = new VertexLogger();
+let repl = require('repl').start();
+
+logger.repl = repl; // to register the repl
+
+// now the repl prompt will remain continuously below the latest logged message
+
+logger.repl = undefined // to unregister the repl
+
+// supports only one repl
+// repl can be registered at any logger in the tree and will be applied to all
+```
+
 #### Loglevel functors...
 
 ...can be passed as loglevel to target specific components.
@@ -87,7 +103,7 @@ let logger = new VertexLogger({
 
 // The level functor is inherited into the tree of loggers
 // - it overrides log levels passed as string on createLogger() child
-// - if does not override loglevels passed as functions on createLogger() child
+// - it does not override loglevels passed as functions on createLogger() child
 
 
 // Level by functor can also be directly assigned
