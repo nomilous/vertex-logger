@@ -1,9 +1,9 @@
 {
   "name": "vertex-logger",
   "engines": {
-    "node": "^6.0.0"
+    "node": ">=6"
   },
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "A logger.",
   "main": "index.js",
   "scripts": {
