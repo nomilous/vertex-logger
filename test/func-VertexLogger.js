@@ -270,7 +270,9 @@ describe(filename, () => {
   it('includes the error stack if last arg is instanceof error', done => {
 
     let log = new VertexLogger({level: 'info'});
-    log.info('error %s', new Error('Problem no problem'));
+    let error = new Error('Problem no problem');
+    error.additionalInfo = {x: 1};
+    log.info('error %s', error);
     done();
 
   });
